@@ -16,7 +16,7 @@ src/                     Complete static website published to GitHub Pages
   style.css               Responsive styling
   manifest.webmanifest    PWA metadata and icons
   sw.js                   Offline asset cache
-  assets/                 App icons and favicon
+  assets/                 App icons, interface SVGs, flags, and third-party licenses
   .nojekyll               Keeps GitHub Pages from running Jekyll
 docs/                    Hosting and device installation guides
 .github/workflows/        GitHub Pages deployment workflow
@@ -47,3 +47,5 @@ To check translation keys, browser language selection, and saved language behavi
 ## License
 
 MIT; see [LICENSE](LICENSE).
+
+Interface icons come from [Lucide](https://lucide.dev/) under the ISC license. Language flags come from [flag-icons](https://github.com/lipis/flag-icons) under the MIT license. The SVGs are stored locally for consistent rendering and offline use; license texts and source details are in [src/assets/licenses](src/assets/licenses) and [docs/icon-sources.md](docs/icon-sources.md).

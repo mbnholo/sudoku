@@ -1,9 +1,13 @@
 /* Cache the game locally; it needs no external APIs or CDNs. */
-const CACHE_NAME = 'sudoku-offline-v5';
+const CACHE_NAME = 'sudoku-offline-v8';
 const OFFLINE_FILES = [
   './', './index.html', './style.css', './engine.js', './puzzles.js', './translations.js', './app.js',
   './manifest.webmanifest', './assets/favicon.svg',
-  './assets/icon-192.png', './assets/icon-512.png', './assets/apple-touch-icon.png'
+  './assets/icon-192.png', './assets/icon-512.png', './assets/apple-touch-icon.png',
+  './assets/ui/undo.svg', './assets/ui/erase.svg', './assets/ui/notes.svg',
+  './assets/ui/hint.svg', './assets/ui/help.svg',
+  './assets/flags/en.svg', './assets/flags/fr.svg', './assets/flags/es.svg',
+  './assets/flags/it.svg', './assets/flags/pt.svg'
 ];
 
 self.addEventListener('install', event => {

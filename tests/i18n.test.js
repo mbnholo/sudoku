@@ -31,12 +31,19 @@ test('all languages cover the interface keys and interpolation variables', () =>
     assert.ok(Object.hasOwn(translations.en, match[1]), `Missing runtime key ${match[1]}`);
   }
   for (const language of Object.keys(translations)) {
-    const option = html.match(new RegExp(`<option value="${language}" aria-label="([^"]+)">([^<]+)</option>`));
-    assert.ok(option, `Missing accessible ${language} option`);
-    assert.match(option[2], /^\p{Regional_Indicator}{2}$/u, `${language} shows only a flag`);
+    assert.match(html, new RegExp(`data-language="${language}"[^>]*><img src="\\./assets/flags/${language}\\.svg" alt="">[^<]+</button>`));
+    assert.ok(fs.existsSync(path.join(root, `assets/flags/${language}.svg`)));
   }
-  assert.match(html, /<select id="language" class="round-button language-select">/);
-  assert.match(fs.readFileSync(path.join(root, 'sw.js'), 'utf8'), /\.\/translations\.js/);
+  assert.match(html, /<summary id="language" class="round-button"/);
+  const offlineCache = fs.readFileSync(path.join(root, 'sw.js'), 'utf8');
+  assert.match(offlineCache, /\.\/translations\.js/);
+  for (const asset of ['undo', 'erase', 'notes', 'hint', 'help']) {
+    assert.ok(fs.existsSync(path.join(root, `assets/ui/${asset}.svg`)));
+    assert.ok(offlineCache.includes(`./assets/ui/${asset}.svg`));
+  }
+  for (const language of Object.keys(translations)) {
+    assert.ok(offlineCache.includes(`./assets/flags/${language}.svg`));
+  }
 });
 
 function createApp({ browserLanguages, savedLanguage, savedGame, savedStats } = {}) {
@@ -47,6 +54,9 @@ function createApp({ browserLanguages, savedLanguage, savedGame, savedStats } = 
       classList: { add() {}, toggle() {} },
       addEventListener(type, handler) { this.handlers[type] = handler; },
       setAttribute(name, value) { this.attributes[name] = value; },
+      removeAttribute(name) { delete this.attributes[name]; },
+      focus() { this.focused = true; },
+      contains(target) { return this === target || this.children.includes(target); },
       appendChild(child) { this.children.push(child); },
       replaceChildren(fragment) { this.children = fragment.children; },
       querySelectorAll() { return this.children; },
@@ -55,20 +65,23 @@ function createApp({ browserLanguages, savedLanguage, savedGame, savedStats } = 
     };
   }
   const staticNodes = [
-    Object.assign(node(), { dataset: { i18n: 'introTitle' } }),
+    Object.assign(node(), { dataset: { i18n: 'howToPlay' } }),
     Object.assign(node(), { dataset: { i18n: 'languageLabel' } }),
     Object.assign(node(), { dataset: { i18nAriaLabel: 'helpButtonLabel' } })
   ];
+  const languageOptions = ['en', 'fr', 'es', 'it', 'pt'].map(language =>
+    Object.assign(node(), { dataset: { language } }));
   const document = {
-    documentElement: { lang: 'en' }, hidden: false,
+    documentElement: { lang: 'en' }, hidden: false, handlers: {},
     getElementById(id) { if (!elements.has(id)) elements.set(id, node()); return elements.get(id); },
     createElement: node, createDocumentFragment: node,
     querySelectorAll(selector) {
       if (selector === '[data-i18n]') return staticNodes.slice(0, 2);
       if (selector === '[data-i18n-aria-label]') return staticNodes.slice(2);
+      if (selector === '[data-language]') return languageOptions;
       return [];
     },
-    addEventListener() {}
+    addEventListener(type, handler) { this.handlers[type] = handler; }
   };
   const storage = new Map();
   if (savedLanguage !== undefined) storage.set('sudoku-language', JSON.stringify(savedLanguage));
@@ -85,7 +98,7 @@ function createApp({ browserLanguages, savedLanguage, savedGame, savedStats } = 
     confirm() { return true; }, setInterval() {}, setTimeout() {}, clearTimeout() {}
   };
   vm.runInNewContext(appSource, context);
-  return { elements, document, storage, staticNodes };
+  return { elements, document, storage, staticNodes, languageOptions };
 }
 
 test('browser language is used, and unsupported or unavailable language falls back to English', () => {
@@ -95,8 +108,8 @@ test('browser language is used, and unsupported or unavailable language falls ba
   ]) {
     const app = createApp({ browserLanguages: languages });
     assert.equal(app.document.documentElement.lang, expected);
-    assert.equal(app.elements.get('language').value, expected);
-    assert.equal(app.staticNodes[0].textContent, translations[expected].introTitle);
+    assert.equal(app.elements.get('languageFlag').src, `./assets/flags/${expected}.svg`);
+    assert.equal(app.staticNodes[0].textContent, translations[expected].howToPlay);
     assert.equal(app.staticNodes[2].attributes['aria-label'], translations[expected].helpButtonLabel);
   }
 });
@@ -116,10 +129,10 @@ test('manual choice persists and updates the game without changing its progress'
   assert.equal(app.document.documentElement.lang, 'it');
   assert.equal(JSON.parse(app.storage.get('sudoku-calmo-game-v1')).level, 'medium');
   const progress = app.storage.get('sudoku-calmo-game-v1');
-  const selector = app.elements.get('language');
-  selector.value = 'es';
-  selector.handlers.change();
+  app.languageOptions.find(option => option.dataset.language === 'es').handlers.click();
   assert.equal(app.document.documentElement.lang, 'es');
+  assert.equal(app.elements.get('languageFlag').src, './assets/flags/es.svg');
+  assert.equal(app.languageOptions.find(option => option.dataset.language === 'es').attributes['aria-current'], 'true');
   assert.equal(JSON.parse(app.storage.get('sudoku-language')), 'es');
   assert.equal(app.storage.get('sudoku-calmo-game-v1'), progress);
   assert.equal(app.staticNodes[2].attributes['aria-label'], translations.es.helpButtonLabel);
@@ -127,4 +140,12 @@ test('manual choice persists and updates the game without changing its progress'
   app.elements.get('helpBtn').handlers.click();
   assert.match(app.elements.get('statsLine').textContent, /2 Sudokus completados/);
   assert.equal(createApp({ browserLanguages: ['fr-FR'], savedLanguage: 'es' }).document.documentElement.lang, 'es');
+});
+
+test('Escape closes the language menu and returns focus to its button', () => {
+  const app = createApp();
+  app.elements.get('languageMenu').open = true;
+  app.document.handlers.keydown({ key: 'Escape', target: app.elements.get('language') });
+  assert.equal(app.elements.get('languageMenu').open, false);
+  assert.equal(app.elements.get('language').focused, true);
 });

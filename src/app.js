@@ -12,7 +12,10 @@
   const $ = id => document.getElementById(id);
   const board = $('board');
   const difficulty = $('difficulty');
-  const languageSelect = $('language');
+  const languageButton = $('language');
+  const languageMenu = $('languageMenu');
+  const languageFlag = $('languageFlag');
+  const languageOptions = [...document.querySelectorAll('[data-language]')];
   const timeLabel = $('timer');
   const feedback = $('feedback');
   const notesBtn = $('notesBtn');
@@ -58,7 +61,11 @@
   }
   function applyLanguage() {
     document.documentElement.lang = language;
-    languageSelect.value = language;
+    languageFlag.src = `./assets/flags/${language}.svg`;
+    for (const option of languageOptions) {
+      if (option.dataset.language === language) option.setAttribute('aria-current', 'true');
+      else option.removeAttribute('aria-current');
+    }
     for (const element of document.querySelectorAll('[data-i18n]')) {
       element.textContent = t(element.dataset.i18n);
     }
@@ -340,8 +347,10 @@
   });
   $('newBtn').addEventListener('click', () => newGame(difficulty.value));
   difficulty.addEventListener('change', () => newGame(difficulty.value));
-  languageSelect.addEventListener('change', () => {
-    language = supportedLanguage(languageSelect.value) ? languageSelect.value : 'en';
+  for (const option of languageOptions) option.addEventListener('click', () => {
+    language = supportedLanguage(option.dataset.language) ? option.dataset.language : 'en';
+    languageMenu.open = false;
+    languageButton.focus();
     writeJSON(LANGUAGE_KEY, language);
     clearTimeout(feedbackTimeout);
     applyLanguage();
@@ -349,6 +358,9 @@
     if (game && game.completed) updateWinSummary();
     if (helpDialog.open) updateStatsLine();
     syncOfflineBadge();
+  });
+  document.addEventListener('click', event => {
+    if (languageMenu.open && !languageMenu.contains(event.target)) languageMenu.open = false;
   });
   notesBtn.addEventListener('click', () => { notesMode = !notesMode; draw(); });
   hintBtn.addEventListener('click', showHint);
@@ -362,7 +374,13 @@
   $('closeWin').addEventListener('click', () => winDialog.close());
   $('playAgain').addEventListener('click', () => { winDialog.close(); newGame(game.level, false); });
   document.addEventListener('keydown', event => {
-    if (helpDialog.open || winDialog.open || event.target === difficulty) return;
+    if (event.key === 'Escape' && languageMenu.open) {
+      languageMenu.open = false;
+      languageButton.focus();
+      return;
+    }
+    if (helpDialog.open || winDialog.open || event.target === difficulty ||
+        event.target === languageButton || languageOptions.includes(event.target)) return;
     if (/^[1-9]$/.test(event.key)) { event.preventDefault(); setNumber(Number(event.key)); }
     else if (['Backspace', 'Delete', '0'].includes(event.key)) { event.preventDefault(); eraseCell(); }
     else if (event.key.startsWith('Arrow')) { event.preventDefault(); moveSelection(event.key); }
