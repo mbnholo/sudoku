@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#f7f6f1">
+  <meta name="description" content="Free, ad-free Sudoku you can play offline.">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Sudoku">
+  <meta name="format-detection" content="telephone=no">
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="apple-touch-icon" href="./assets/apple-touch-icon.png">
+  <link rel="icon" type="image/svg+xml" href="./assets/favicon.svg">
+  <link rel="stylesheet" href="./style.css">
+  <title>Sudoku — Play offline</title>
+</head>
+<body>
+  <main class="app-shell">
+    <header class="topbar">
+      <a class="identity" href="./" aria-label="Sudoku home">
+        <span class="brand-symbol" aria-hidden="true"><span>1</span><span>2</span><span>3</span><span>4</span></span>
+        <span class="brand-text">SUDOKU</span>
+      </a>
+      <button id="helpBtn" class="round-button" type="button" aria-label="Help and instructions" title="Help and instructions">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.6 9a2.5 2.5 0 0 1 4.8 1c0 1.8-2.4 2-2.4 4"/><path d="M12 17.5h.01"/></svg>
+      </button>
+    </header>
+
+    <section class="intro" aria-labelledby="introTitle">
+      <div>
+        <p class="eyebrow">A QUIET MOMENT FOR YOU</p>
+        <h1 id="introTitle">One number at a time.</h1>
+        <p class="subtitle">Just you and your Sudoku. No distractions.</p>
+      </div>
+    </section>
+
+    <section class="game-card" aria-label="Sudoku game">
+      <div class="game-topline">
+        <label class="difficulty-label" for="difficulty">
+          <span>DIFFICULTY</span>
+          <select id="difficulty" aria-label="Game difficulty">
+            <option value="easy">Easy</option>
+            <option value="medium" selected>Medium</option>
+            <option value="hard">Hard</option>
+            <option value="expert">Expert</option>
+          </select>
+        </label>
+        <div class="time-label" aria-live="off"><span>TIME</span><strong id="timer">00:00</strong></div>
+        <button id="newBtn" class="new-btn" type="button" title="Start a new game">+ New</button>
+      </div>
+
+      <div id="board" class="sudoku-board" role="grid" aria-label="9 by 9 Sudoku grid"></div>
+      <div class="game-feedback" aria-live="polite" id="feedback">Select a cell and choose a number.</div>
+
+      <div class="tool-row" aria-label="Game tools">
+        <button id="undoBtn" class="tool-btn" type="button"><span class="tool-icon" aria-hidden="true">↶</span><span>Undo</span></button>
+        <button id="eraseBtn" class="tool-btn" type="button"><span class="tool-icon" aria-hidden="true">⌫</span><span>Erase</span></button>
+        <button id="notesBtn" class="tool-btn" type="button" aria-pressed="false"><span class="tool-icon" aria-hidden="true">✎</span><span>Notes</span></button>
+        <button id="hintBtn" class="tool-btn" type="button"><span class="tool-icon" aria-hidden="true">✧</span><span>Hint</span></button>
+      </div>
+      <div class="number-row" id="numberPad" aria-label="Numbers to enter"></div>
+    </section>
+
+    <footer class="app-footer">
+      <span class="status"><span id="statusDot" class="status-dot"></span><span id="offlineStatus">Saved on this device</span></span>
+      <span>No ads <span aria-hidden="true">·</span> No account</span>
+    </footer>
+  </main>
+
+  <dialog id="helpDialog" class="popup">
+    <form method="dialog"><button type="submit" class="close-dialog" aria-label="Close">×</button></form>
+    <p class="eyebrow">HOW TO PLAY</p>
+    <h2>Enjoy the logic.</h2>
+    <p>Fill the grid with numbers from 1 to 9 without repeating a number in any row, column, or 3×3 box.</p>
+    <ul>
+      <li><strong>Notes:</strong> mark possible numbers in an empty cell.</li>
+      <li><strong>Hint:</strong> reveal a correct number.</li>
+      <li><strong>Undo:</strong> return to your previous move.</li>
+      <li><strong>New:</strong> start another puzzle at the selected difficulty.</li>
+    </ul>
+    <h3>Play offline on iPhone</h3>
+    <p>Open this site in Safari, choose <strong>Share → Add to Home Screen</strong>, and enable <strong>Open as Web App</strong> if available. Open the icon at least once while online before trying airplane mode.</p>
+    <p id="statsLine" class="smallprint"></p>
+    <p class="smallprint">Games are saved only on this device. Clearing site data may erase them. There is no sync between devices.</p>
+    <button id="closeHelp" class="primary-button" type="button">Got it</button>
+  </dialog>
+
+  <dialog id="winDialog" class="popup win-popup">
+    <div class="win-ornament" aria-hidden="true">✧</div>
+    <p class="eyebrow">PUZZLE COMPLETE</p>
+    <h2>Nicely done.</h2>
+    <p id="winSummary">You completed the Sudoku.</p>
+    <button id="playAgain" class="primary-button" type="button">Play again</button>
+    <button id="closeWin" class="quiet-button" type="button">Review the grid</button>
+  </dialog>
+
+  <script src="./puzzles.js" defer></script>
+  <script src="./engine.js" defer></script>
+  <script src="./app.js" defer></script>
+</body>
+</html>
