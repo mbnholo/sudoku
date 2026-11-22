@@ -3,13 +3,16 @@
   'use strict';
   const E = window.SudokuEngine;
   const SEEDS = window.SUDOKU_SEEDS;
+  const TRANSLATIONS = window.SUDOKU_TRANSLATIONS;
   const SAVE_KEY = 'sudoku-calmo-game-v1';
   const STATS_KEY = 'sudoku-calmo-stats-v1';
+  const LANGUAGE_KEY = 'sudoku-language';
   // Keep existing storage keys so saved games and statistics survive the language change.
   const LEGACY_LEVELS = { 'facile': 'easy', 'medio': 'medium', 'difficile': 'hard', 'esperto': 'expert' };
   const $ = id => document.getElementById(id);
   const board = $('board');
   const difficulty = $('difficulty');
+  const languageSelect = $('language');
   const timeLabel = $('timer');
   const feedback = $('feedback');
   const notesBtn = $('notesBtn');
@@ -32,6 +35,41 @@
   function writeJSON(key, value) {
     try { localStorage.setItem(key, JSON.stringify(value)); return true; }
     catch (_) { return false; }
+  }
+  function supportedLanguage(code) {
+    return Object.prototype.hasOwnProperty.call(TRANSLATIONS, code);
+  }
+  function initialLanguage() {
+    const saved = readJSON(LANGUAGE_KEY);
+    if (supportedLanguage(saved)) return saved;
+    const browserLanguages = Array.isArray(navigator.languages) && navigator.languages.length
+      ? navigator.languages : [navigator.language];
+    for (const candidate of browserLanguages) {
+      if (typeof candidate !== 'string') continue;
+      const code = candidate.toLowerCase().split(/[-_]/)[0];
+      if (supportedLanguage(code)) return code;
+    }
+    return 'en';
+  }
+  let language = initialLanguage();
+  function t(key, values = {}) {
+    const template = TRANSLATIONS[language][key] || TRANSLATIONS.en[key] || key;
+    return template.replace(/\{(\w+)\}/g, (_, name) => String(values[name] ?? ''));
+  }
+  function applyLanguage() {
+    document.documentElement.lang = language;
+    languageSelect.value = language;
+    for (const element of document.querySelectorAll('[data-i18n]')) {
+      element.textContent = t(element.dataset.i18n);
+    }
+    for (const [attribute, name] of [['aria-label', 'i18nAriaLabel'], ['title', 'i18nTitle'], ['content', 'i18nContent']]) {
+      for (const element of document.querySelectorAll(`[data-i18n-${attribute}]`)) {
+        element.setAttribute(attribute, t(element.dataset[name]));
+      }
+    }
+    for (const button of $('numberPad').querySelectorAll('button')) {
+      button.setAttribute('aria-label', t('enterNumber', { number: button.textContent }));
+    }
   }
   function isNineNumbers(a, allowZero = true) {
     return Array.isArray(a) && a.length === 81 && a.every(n =>
@@ -84,7 +122,7 @@
   }
   function newGame(level = 'medium', ask = true) {
     if (ask && game && !game.completed && hasProgress() &&
-        !confirm('Starting a new game will erase your current progress. Continue?')) {
+        !confirm(t('confirmNewGame'))) {
       difficulty.value = game.level;
       return false;
     }
@@ -101,24 +139,24 @@
     lastTick = Date.now();
     save();
     draw();
-    announce('Enjoy the game. One number at a time.');
+    announce('newGameMessage');
     return true;
   }
   function snapshot() {
     game.history.push({ values: game.values.slice(), notes: game.notes.slice(), hints: game.hints });
     if (game.history.length > 60) game.history.shift();
   }
-  function announce(text) {
+  function announce(key, values) {
     clearTimeout(feedbackTimeout);
-    feedback.textContent = text;
+    feedback.textContent = t(key, values);
     feedbackTimeout = setTimeout(() => { feedback.textContent = defaultMessage(); }, 3600);
   }
   function defaultMessage() {
-    if (game.completed) return 'Puzzle complete. Well done!';
-    if (notesMode) return 'Notes on: tap numbers to add them.';
+    if (game.completed) return t('completedMessage');
+    if (notesMode) return t('notesActive');
     const conflicts = E.conflicts(game.values);
-    if (conflicts.size) return 'Some numbers are repeated.';
-    return 'Select a cell and choose a number.';
+    if (conflicts.size) return t('conflictMessage');
+    return t('selectCellMessage');
   }
   function addNoteGrid(button, mask) {
     const container = document.createElement('span');
@@ -156,9 +194,12 @@
       } else if (game.notes[i]) {
         addNoteGrid(button, game.notes[i]);
       }
-      const noteText = !v && game.notes[i] ? ', note ' +
-        Array.from({length: 9}, (_, x) => x + 1).filter(n => game.notes[i] & (1 << n)).join(' ') : '';
-      button.setAttribute('aria-label', `Row ${r + 1}, column ${c + 1}: ${v || 'empty'}${isGiven ? ', given number' : ''}${noteText}`);
+      const noteText = !v && game.notes[i] ? t('cellNotes', { numbers:
+        Array.from({length: 9}, (_, x) => x + 1).filter(n => game.notes[i] & (1 << n)).join(' ') }) : '';
+      button.setAttribute('aria-label', t('cellLabel', {
+        row: r + 1, column: c + 1, value: v || t('cellEmpty'),
+        given: isGiven ? t('cellGiven') : '', notes: noteText
+      }));
       button.setAttribute('aria-selected', String(selected === i));
       button.dataset.index = i;
       frag.appendChild(button);
@@ -188,7 +229,7 @@
     if (game.completed || selected < 0 || game.puzzle[selected]) return;
     const i = selected;
     if (notesMode) {
-      if (game.values[i]) { announce('Erase the number before adding a note.'); return; }
+      if (game.values[i]) { announce('eraseBeforeNote'); return; }
       snapshot();
       game.notes[i] ^= 1 << n;
     } else {
@@ -216,7 +257,7 @@
     game.hints = Number(previous.hints) || 0;
     save();
     draw();
-    announce('Move undone.');
+    announce('moveUndone');
   }
   function showHint() {
     if (game.completed) return;
@@ -233,7 +274,17 @@
     for (const peer of E.peerIndices(i)) game.notes[peer] &= ~(1 << n);
     game.hints++;
     finishAction();
-    if (!game.completed) announce(`Hint: this cell is ${n}.`);
+    if (!game.completed) announce('hintMessage', { number: n });
+  }
+  function updateWinSummary() {
+    const key = game.hints === 0 ? 'winNoHints' : game.hints === 1 ? 'winOneHint' : 'winManyHints';
+    $('winSummary').textContent = t(key, {
+      level: t(game.level), time: formatTime(game.seconds), count: game.hints
+    });
+  }
+  function updateStatsLine() {
+    const total = Object.values(readStats()).reduce((sum, stats) => sum + (Number(stats.completed) || 0), 0);
+    $('statsLine').textContent = t(total === 1 ? 'statsOne' : 'statsMany', { count: total });
   }
   function finishAction() {
     if (E.validComplete(game.values, game.solution)) {
@@ -244,7 +295,7 @@
       if (stats.best === null || game.seconds < stats.best) stats.best = game.seconds;
       all[game.level] = stats;
       writeJSON(STATS_KEY, all);
-      $('winSummary').textContent = `You completed ${game.level} Sudoku in ${formatTime(game.seconds)}${game.hints ? ` with ${game.hints} hints` : ' without hints'}.`;
+      updateWinSummary();
       setTimeout(() => { if (!winDialog.open) winDialog.showModal(); }, 160);
     }
     save();
@@ -262,10 +313,10 @@
   function syncOfflineBadge() {
     const status = $('offlineStatus');
     const dot = $('statusDot');
-    if (!navigator.onLine && offlineReady) status.textContent = 'Playing offline';
-    else if (offlineReady) status.textContent = 'Ready for airplane mode';
-    else if (!navigator.onLine) status.textContent = 'Offline · cache not verified';
-    else status.textContent = 'Saved on this device';
+    if (!navigator.onLine && offlineReady) status.textContent = t('playingOffline');
+    else if (offlineReady) status.textContent = t('readyOffline');
+    else if (!navigator.onLine) status.textContent = t('offlineUnverified');
+    else status.textContent = t('savedLocally');
     dot.classList.toggle('ready', offlineReady);
   }
   async function prepareOffline() {
@@ -277,7 +328,7 @@
       offlineReady = true;
       syncOfflineBadge();
     } catch (err) {
-      console.warn('Offline cache unavailable:', err);
+      console.warn(t('offlineCacheUnavailable'), err);
       syncOfflineBadge();
     }
   }
@@ -289,14 +340,22 @@
   });
   $('newBtn').addEventListener('click', () => newGame(difficulty.value));
   difficulty.addEventListener('change', () => newGame(difficulty.value));
+  languageSelect.addEventListener('change', () => {
+    language = supportedLanguage(languageSelect.value) ? languageSelect.value : 'en';
+    writeJSON(LANGUAGE_KEY, language);
+    clearTimeout(feedbackTimeout);
+    applyLanguage();
+    if (game) draw();
+    if (game && game.completed) updateWinSummary();
+    if (helpDialog.open) updateStatsLine();
+    syncOfflineBadge();
+  });
   notesBtn.addEventListener('click', () => { notesMode = !notesMode; draw(); });
   hintBtn.addEventListener('click', showHint);
   undoBtn.addEventListener('click', undoMove);
   eraseBtn.addEventListener('click', eraseCell);
   $('helpBtn').addEventListener('click', () => {
-    const stats = readStats();
-    const total = Object.values(stats).reduce((sum, s) => sum + (Number(s.completed) || 0), 0);
-    $('statsLine').textContent = `Sudoku puzzles completed on this device: ${total}.`;
+    updateStatsLine();
     helpDialog.showModal();
   });
   $('closeHelp').addEventListener('click', () => helpDialog.close());
@@ -313,10 +372,11 @@
   for (let n = 1; n <= 9; n++) {
     const b = document.createElement('button');
     b.className = 'number-btn'; b.type = 'button'; b.textContent = String(n);
-    b.setAttribute('aria-label', 'Enter ' + n);
+    b.setAttribute('aria-label', t('enterNumber', { number: n }));
     b.addEventListener('click', () => setNumber(n));
     $('numberPad').appendChild(b);
   }
+  applyLanguage();
   game = restoreGame();
   if (game) { difficulty.value = game.level; chooseCell(); save(); draw(); }
   else newGame('medium', false);

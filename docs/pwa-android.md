@@ -1,6 +1,6 @@
 # Install Sudoku on Android
 
-1. Connect to the internet and open the [published Sudoku site](https://mbnholo.github.io/sudoku/) in **Chrome**. Wait for the game to load and for the status to show **Ready for airplane mode**.
+1. Connect to the internet and open the [published Sudoku site](https://mbnholo.github.io/sudoku/) in **Chrome**. Wait for the game to load and for the status to show **Ready for airplane mode** (or its translation in your selected language).
 2. Open Chrome's **⋮** menu and choose **Install app** or **Add to Home screen**. The wording varies by Chrome and Android version.
 3. Confirm the installation or shortcut. Open Sudoku from its new Home Screen icon once while online.
 4. To check offline play, turn on airplane mode and reopen the icon.

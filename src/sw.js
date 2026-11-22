@@ -1,7 +1,7 @@
 /* Cache the game locally; it needs no external APIs or CDNs. */
-const CACHE_NAME = 'sudoku-offline-v3';
+const CACHE_NAME = 'sudoku-offline-v5';
 const OFFLINE_FILES = [
-  './', './index.html', './style.css', './engine.js', './puzzles.js', './app.js',
+  './', './index.html', './style.css', './engine.js', './puzzles.js', './translations.js', './app.js',
   './manifest.webmanifest', './assets/favicon.svg',
   './assets/icon-192.png', './assets/icon-512.png', './assets/apple-touch-icon.png'
 ];

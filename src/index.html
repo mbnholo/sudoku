@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#f7f6f1">
-  <meta name="description" content="Free, ad-free Sudoku you can play offline.">
+  <meta name="description" content="Free, ad-free Sudoku you can play offline." data-i18n-content="description">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="Sudoku">
@@ -13,90 +13,103 @@
   <link rel="apple-touch-icon" href="./assets/apple-touch-icon.png">
   <link rel="icon" type="image/svg+xml" href="./assets/favicon.svg">
   <link rel="stylesheet" href="./style.css">
-  <title>Sudoku — Play offline</title>
+  <title data-i18n="pageTitle">Sudoku — Play offline</title>
 </head>
 <body>
   <main class="app-shell">
     <header class="topbar">
-      <a class="identity" href="./" aria-label="Sudoku home">
+      <a class="identity" href="./" aria-label="Sudoku home" data-i18n-aria-label="homeLabel">
         <span class="brand-symbol" aria-hidden="true"><span>1</span><span>2</span><span>3</span><span>4</span></span>
         <span class="brand-text">SUDOKU</span>
       </a>
-      <button id="helpBtn" class="round-button" type="button" aria-label="Help and instructions" title="Help and instructions">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.6 9a2.5 2.5 0 0 1 4.8 1c0 1.8-2.4 2-2.4 4"/><path d="M12 17.5h.01"/></svg>
-      </button>
+      <div class="topbar-actions">
+        <label class="language-control">
+          <span class="sr-only" data-i18n="languageLabel">Language</span>
+          <select id="language" class="round-button language-select">
+            <option value="en" aria-label="English">🇬🇧</option>
+            <option value="fr" aria-label="Français">🇫🇷</option>
+            <option value="es" aria-label="Español">🇪🇸</option>
+            <option value="it" aria-label="Italiano">🇮🇹</option>
+            <option value="pt" aria-label="Português">🇵🇹</option>
+          </select>
+        </label>
+        <button id="helpBtn" class="round-button" type="button" aria-label="Help and instructions" title="Help and instructions" data-i18n-aria-label="helpButtonLabel" data-i18n-title="helpButtonLabel">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.6 9a2.5 2.5 0 0 1 4.8 1c0 1.8-2.4 2-2.4 4"/><path d="M12 17.5h.01"/></svg>
+        </button>
+      </div>
     </header>
 
     <section class="intro" aria-labelledby="introTitle">
       <div>
-        <p class="eyebrow">A QUIET MOMENT FOR YOU</p>
-        <h1 id="introTitle">One number at a time.</h1>
-        <p class="subtitle">Just you and your Sudoku. No distractions.</p>
+        <p class="eyebrow" data-i18n="eyebrow">A QUIET MOMENT FOR YOU</p>
+        <h1 id="introTitle" data-i18n="introTitle">One number at a time.</h1>
+        <p class="subtitle" data-i18n="subtitle">Just you and your Sudoku. No distractions.</p>
       </div>
     </section>
 
-    <section class="game-card" aria-label="Sudoku game">
+    <section class="game-card" aria-label="Sudoku game" data-i18n-aria-label="gameLabel">
       <div class="game-topline">
         <label class="difficulty-label" for="difficulty">
-          <span>DIFFICULTY</span>
-          <select id="difficulty" aria-label="Game difficulty">
-            <option value="easy">Easy</option>
-            <option value="medium" selected>Medium</option>
-            <option value="hard">Hard</option>
-            <option value="expert">Expert</option>
+          <span data-i18n="difficultyLabel">DIFFICULTY</span>
+          <select id="difficulty" aria-label="Game difficulty" data-i18n-aria-label="difficultyAriaLabel">
+            <option value="easy" data-i18n="easy">Easy</option>
+            <option value="medium" selected data-i18n="medium">Medium</option>
+            <option value="hard" data-i18n="hard">Hard</option>
+            <option value="expert" data-i18n="expert">Expert</option>
           </select>
         </label>
-        <div class="time-label" aria-live="off"><span>TIME</span><strong id="timer">00:00</strong></div>
-        <button id="newBtn" class="new-btn" type="button" title="Start a new game">+ New</button>
+        <div class="time-label" aria-live="off"><span data-i18n="timeLabel">TIME</span><strong id="timer">00:00</strong></div>
+        <button id="newBtn" class="new-btn" type="button" title="Start a new game" data-i18n="newButton" data-i18n-title="newButtonTitle">+ New</button>
       </div>
 
-      <div id="board" class="sudoku-board" role="grid" aria-label="9 by 9 Sudoku grid"></div>
-      <div class="game-feedback" aria-live="polite" id="feedback">Select a cell and choose a number.</div>
+      <div id="board" class="sudoku-board" role="grid" aria-label="9 by 9 Sudoku grid" data-i18n-aria-label="boardLabel"></div>
+      <div class="game-feedback" aria-live="polite" id="feedback" data-i18n="selectCellMessage">Select a cell and choose a number.</div>
 
-      <div class="tool-row" aria-label="Game tools">
-        <button id="undoBtn" class="tool-btn" type="button"><span class="tool-icon" aria-hidden="true">↶</span><span>Undo</span></button>
-        <button id="eraseBtn" class="tool-btn" type="button"><span class="tool-icon" aria-hidden="true">⌫</span><span>Erase</span></button>
-        <button id="notesBtn" class="tool-btn" type="button" aria-pressed="false"><span class="tool-icon" aria-hidden="true">✎</span><span>Notes</span></button>
-        <button id="hintBtn" class="tool-btn" type="button"><span class="tool-icon" aria-hidden="true">✧</span><span>Hint</span></button>
+      <div class="tool-row" aria-label="Game tools" data-i18n-aria-label="toolsLabel">
+        <button id="undoBtn" class="tool-btn" type="button"><span class="tool-icon" aria-hidden="true">↶</span><span data-i18n="undo">Undo</span></button>
+        <button id="eraseBtn" class="tool-btn" type="button"><span class="tool-icon" aria-hidden="true">⌫</span><span data-i18n="erase">Erase</span></button>
+        <button id="notesBtn" class="tool-btn" type="button" aria-pressed="false"><span class="tool-icon" aria-hidden="true">✎</span><span data-i18n="notes">Notes</span></button>
+        <button id="hintBtn" class="tool-btn" type="button"><span class="tool-icon" aria-hidden="true">✧</span><span data-i18n="hint">Hint</span></button>
       </div>
-      <div class="number-row" id="numberPad" aria-label="Numbers to enter"></div>
+      <div class="number-row" id="numberPad" aria-label="Numbers to enter" data-i18n-aria-label="numberPadLabel"></div>
     </section>
 
     <footer class="app-footer">
-      <span class="status"><span id="statusDot" class="status-dot"></span><span id="offlineStatus">Saved on this device</span></span>
-      <span>No ads <span aria-hidden="true">·</span> No account</span>
+      <span class="status"><span id="statusDot" class="status-dot"></span><span id="offlineStatus" data-i18n="savedLocally">Saved on this device</span></span>
+      <span><span data-i18n="noAds">No ads</span> <span aria-hidden="true">·</span> <span data-i18n="noAccount">No account</span></span>
     </footer>
   </main>
 
   <dialog id="helpDialog" class="popup">
-    <form method="dialog"><button type="submit" class="close-dialog" aria-label="Close">×</button></form>
-    <p class="eyebrow">HOW TO PLAY</p>
-    <h2>Enjoy the logic.</h2>
-    <p>Fill the grid with numbers from 1 to 9 without repeating a number in any row, column, or 3×3 box.</p>
+    <form method="dialog"><button type="submit" class="close-dialog" aria-label="Close" data-i18n-aria-label="close">×</button></form>
+    <p class="eyebrow" data-i18n="howToPlay">HOW TO PLAY</p>
+    <h2 data-i18n="helpTitle">Enjoy the logic.</h2>
+    <p data-i18n="helpRules">Fill the grid with numbers from 1 to 9 without repeating a number in any row, column, or 3×3 box.</p>
     <ul>
-      <li><strong>Notes:</strong> mark possible numbers in an empty cell.</li>
-      <li><strong>Hint:</strong> reveal a correct number.</li>
-      <li><strong>Undo:</strong> return to your previous move.</li>
-      <li><strong>New:</strong> start another puzzle at the selected difficulty.</li>
+      <li><strong data-i18n="notesLabel">Notes:</strong> <span data-i18n="helpNotes">mark possible numbers in an empty cell.</span></li>
+      <li><strong data-i18n="hintLabel">Hint:</strong> <span data-i18n="helpHint">reveal a correct number.</span></li>
+      <li><strong data-i18n="undoLabel">Undo:</strong> <span data-i18n="helpUndo">return to your previous move.</span></li>
+      <li><strong data-i18n="newLabel">New:</strong> <span data-i18n="helpNew">start another puzzle at the selected difficulty.</span></li>
     </ul>
-    <h3>Play offline on iPhone</h3>
-    <p>Open this site in Safari, choose <strong>Share → Add to Home Screen</strong>, and enable <strong>Open as Web App</strong> if available. Open the icon at least once while online before trying airplane mode.</p>
+    <h3 data-i18n="iphoneTitle">Play offline on iPhone</h3>
+    <p data-i18n="iphoneInstructions">Open this site in Safari, choose Share → Add to Home Screen, and enable Open as Web App if available. Open the icon at least once while online before trying airplane mode.</p>
     <p id="statsLine" class="smallprint"></p>
-    <p class="smallprint">Games are saved only on this device. Clearing site data may erase them. There is no sync between devices.</p>
-    <button id="closeHelp" class="primary-button" type="button">Got it</button>
+    <p class="smallprint" data-i18n="storageNotice">Games are saved only on this device. Clearing site data may erase them. There is no sync between devices.</p>
+    <button id="closeHelp" class="primary-button" type="button" data-i18n="gotIt">Got it</button>
   </dialog>
 
   <dialog id="winDialog" class="popup win-popup">
     <div class="win-ornament" aria-hidden="true">✧</div>
-    <p class="eyebrow">PUZZLE COMPLETE</p>
-    <h2>Nicely done.</h2>
-    <p id="winSummary">You completed the Sudoku.</p>
-    <button id="playAgain" class="primary-button" type="button">Play again</button>
-    <button id="closeWin" class="quiet-button" type="button">Review the grid</button>
+    <p class="eyebrow" data-i18n="puzzleComplete">PUZZLE COMPLETE</p>
+    <h2 data-i18n="winTitle">Nicely done.</h2>
+    <p id="winSummary" data-i18n="winSummaryDefault">You completed the Sudoku.</p>
+    <button id="playAgain" class="primary-button" type="button" data-i18n="playAgain">Play again</button>
+    <button id="closeWin" class="quiet-button" type="button" data-i18n="reviewGrid">Review the grid</button>
   </dialog>
 
   <script src="./puzzles.js" defer></script>
   <script src="./engine.js" defer></script>
+  <script src="./translations.js" defer></script>
   <script src="./app.js" defer></script>
 </body>
 </html>

@@ -2,7 +2,7 @@
 
 Sudoku is a free, ad-free Sudoku game designed to work on phones, tablets, and desktop computers. It runs in the browser, needs no account, and can be installed as a Progressive Web App (PWA) for offline play after the first online visit.
 
-The game offers four difficulty levels, notes, hints, undo, a timer, and local progress and statistics. The interface is in English. Game data stays in the browser on each device; it does not sync between devices and can be lost if site data is cleared.
+The game offers four difficulty levels, notes, hints, undo, a timer, and local progress and statistics. The interface supports English, French, Spanish, Italian, and Portuguese. It uses the browser's language when supported, defaults to English, and remembers a language chosen from the flag menu. Game data stays in the browser on each device; it does not sync between devices and can be lost if site data is cleared.
 
 ## Project structure
 
@@ -10,6 +10,7 @@ The game offers four difficulty levels, notes, hints, undo, a timer, and local p
 src/                     Complete static website published to GitHub Pages
   index.html              Game page and interface
   app.js                  UI, interactions, local saves, and PWA registration
+  translations.js         Interface text for all supported languages
   engine.js               Sudoku rules and puzzle transformations
   puzzles.js              Puzzle seeds
   style.css               Responsive styling
@@ -19,10 +20,11 @@ src/                     Complete static website published to GitHub Pages
   .nojekyll               Keeps GitHub Pages from running Jekyll
 docs/                    Hosting and device installation guides
 .github/workflows/        GitHub Pages deployment workflow
+tests/i18n.test.js        Translation and language selection checks
 LICENSE                  MIT license
 ```
 
-The website uses plain HTML, CSS, and JavaScript. It has no build step, runtime dependencies, API calls, ads, or analytics. Keep the files in `src/` together: the page, manifest, and service worker use relative paths, and the service worker controls the published site root.
+The website uses plain HTML, CSS, and JavaScript. It has no build step, runtime dependencies, API calls, ads, or analytics. Keep the files in `src/` together: the page, manifest, and service worker use relative paths, and the service worker controls the published site root. Static text uses `data-i18n` keys in `index.html`; runtime messages use the same keys through `t()` in `app.js`. Edit translations in `translations.js`, keeping every key in all five languages.
 
 ## Run locally
 
@@ -33,6 +35,8 @@ python -m http.server 8000 --directory src
 ```
 
 Open `http://localhost:8000/`. Use a local HTTP server rather than opening `index.html` as a file so the service worker can register. To check offline play, load the page once while online, wait for the offline-ready message, then reload with the browser's network disabled.
+
+To check translation keys, browser language selection, and saved language behavior, run `node --test tests/i18n.test.js` with Node.js installed.
 
 ## Publish and install
 
